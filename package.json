@@ -1,0 +1,37 @@
+{
+  "name": "remarkable",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "typegen": "sanity typegen generate",
+    "postinstall": "patch-package"
+  },
+  "dependencies": {
+    "@portabletext/react": "^6.2.0",
+    "@sanity/icons": "^3.7.0",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/mutate": "^0.18.1",
+    "@sanity/ui": "^3.3.1",
+    "@sanity/vision": "^6.3.0",
+    "embla-carousel-react": "^8.6.0",
+    "next": "^16.2.10",
+    "next-sanity": "^13.1.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sanity": "^6.3.0",
+    "styled-components": "^6.4.3",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/three": "^0.160.0",
+    "patch-package": "^8.0.1",
+    "typescript": "^5.7.0"
+  }
+}
