@@ -99,7 +99,9 @@ The element's existing handler then runs with all its guards (drag-disable
 attribute, optimistic actor readiness, array path, sibling drag group), and the
 user's real mouse movements drive the rest of the sequence. Sets a
 `globalThis.__sanityChipDragPatched` marker so a served bundle can be checked
-for the patch. Remove when upstream wires its drag handle.
+for the patch. Reported upstream as
+[sanity-io/visual-editing#3494](https://github.com/sanity-io/visual-editing/issues/3494)
+— remove this patch when that issue is fixed.
 
 ## `sanity@6.3.0`
 
