@@ -1,3 +1,29 @@
+diff --git a/node_modules/@sanity/visual-editing/dist/_chunks-es/SharedStateContext.js b/node_modules/@sanity/visual-editing/dist/_chunks-es/SharedStateContext.js
+index 4882b0c..ef8363e 100644
+--- a/node_modules/@sanity/visual-editing/dist/_chunks-es/SharedStateContext.js
++++ b/node_modules/@sanity/visual-editing/dist/_chunks-es/SharedStateContext.js
+@@ -729,6 +729,21 @@ function createOverlayController({
+   const elementIdMap = /* @__PURE__ */ new Map(), elementsMap = /* @__PURE__ */ new WeakMap(), elementSet = /* @__PURE__ */ new Set(), measureElements = /* @__PURE__ */ new WeakMap(), cursorMap = /* @__PURE__ */ new WeakMap();
+   let ro, io, mo, activeDragSequence = !1, hoverStack = [];
+   const getHoveredElement = () => hoverStack[hoverStack.length - 1];
++  globalThis.__sanityChipDragPatched = !0, overlayElement.addEventListener("mousedown", (event) => {
++    const t = event.target;
++    if (!(t instanceof Element) || !t.closest(".drag-handle")) return;
++    const hovered = getHoveredElement();
++    hovered && (event.preventDefault(), event.stopPropagation(), hovered.dispatchEvent(new MouseEvent("mousedown", {
++      bubbles: !0,
++      cancelable: !0,
++      clientX: event.clientX,
++      clientY: event.clientY,
++      button: 0,
++      view: window
++    })));
++  }, {
++    capture: !0
++  });
+   function addEventHandlers(el, handlers) {
+     el.addEventListener("click", handlers.click, {
+       capture: !0
 diff --git a/node_modules/@sanity/visual-editing/dist/_chunks-es/VisualEditing.js b/node_modules/@sanity/visual-editing/dist/_chunks-es/VisualEditing.js
 index 2846be0..3ba22bc 100644
 --- a/node_modules/@sanity/visual-editing/dist/_chunks-es/VisualEditing.js
@@ -100,6 +126,48 @@ index 2b31f37..b28c49a 100644
    let t7;
    bb0: {
      if (stega && state.sourceMap) {
+diff --git a/node_modules/@sanity/visual-editing/src/controller.ts b/node_modules/@sanity/visual-editing/src/controller.ts
+index 28c3449..15a4a75 100644
+--- a/node_modules/@sanity/visual-editing/src/controller.ts
++++ b/node_modules/@sanity/visual-editing/src/controller.ts
+@@ -63,6 +63,37 @@ export function createOverlayController({
+   let hoverStack: Array<ElementNode> = []
+   const getHoveredElement = () => hoverStack[hoverStack.length - 1] as ElementNode | undefined
+ 
++  // PATCH: make the overlay chip's drag handle actually start a drag. Upstream
++  // renders a DragHandleIcon (className "drag-handle") when an element is
++  // draggable, but never wires any pointer handler to it -- drags only start
++  // from mousedown on the underlying content element, so grabbing the visible
++  // handle silently does nothing. Forward mousedown from the handle to the
++  // hovered element; every existing guard (drag-disable attr, optimistic actor,
++  // array path, drag group) still runs in the element's own handler.
++  ;(globalThis as {__sanityChipDragPatched?: boolean}).__sanityChipDragPatched = true
++  overlayElement.addEventListener(
++    'mousedown',
++    (event) => {
++      const t = event.target
++      if (!(t instanceof Element) || !t.closest('.drag-handle')) return
++      const hovered = getHoveredElement()
++      if (!hovered) return
++      event.preventDefault()
++      event.stopPropagation()
++      hovered.dispatchEvent(
++        new MouseEvent('mousedown', {
++          bubbles: true,
++          cancelable: true,
++          clientX: event.clientX,
++          clientY: event.clientY,
++          button: 0,
++          view: window,
++        }),
++      )
++    },
++    {capture: true},
++  )
++
+   function addEventHandlers(el: ElementNode, handlers: EventHandlers) {
+     el.addEventListener('click', handlers.click as EventListener, {
+       capture: true,
 diff --git a/node_modules/@sanity/visual-editing/src/ui/ElementOverlay.tsx b/node_modules/@sanity/visual-editing/src/ui/ElementOverlay.tsx
 index 99923b3..783206f 100644
 --- a/node_modules/@sanity/visual-editing/src/ui/ElementOverlay.tsx

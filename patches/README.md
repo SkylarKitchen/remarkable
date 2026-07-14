@@ -5,7 +5,7 @@ These are applied automatically on `npm install` via `patch-package` (see the
 
 ## `@sanity/visual-editing@5.4.5`
 
-Four unrelated changes:
+Five unrelated changes:
 
 ### 1. Instant Presentation preview — race-condition fix
 
@@ -77,6 +77,29 @@ defaults. The preview publishes a `_type -> () => fields` factory map on
 `globalThis.__sanityInsertDefaults` (see `VisualEditingBridge`); the patch calls
 the matching factory and deep re-keys nested array items so repeated inserts
 never collide on `_key`.
+
+### 5. Overlay drag handle — actually starts a drag
+
+**Files:** `dist/_chunks-es/SharedStateContext.js`, `src/controller.ts`
+
+**Symptom:** Grabbing the drag-handle icon in a block's hover chip and dragging
+did nothing. Only dragging the block's body worked — undiscoverable, since the
+handle is the visible drag affordance.
+
+**Root cause:** Drag sequences start exclusively in the `mousedown` handler the
+controller attaches to the underlying *content element*. The chip (including
+its `DragHandleIcon`, class `drag-handle`) renders in the overlay layer — a
+different DOM subtree — with **no** pointer handler wired to it, so its
+mousedown never reaches the element's listener.
+
+**Fix:** A capture-phase `mousedown` listener on the overlay root forwards
+events originating on `.drag-handle` to the currently hovered element (the
+hover stack keeps the element on top while the pointer is over its own chip).
+The element's existing handler then runs with all its guards (drag-disable
+attribute, optimistic actor readiness, array path, sibling drag group), and the
+user's real mouse movements drive the rest of the sequence. Sets a
+`globalThis.__sanityChipDragPatched` marker so a served bundle can be checked
+for the patch. Remove when upstream wires its drag handle.
 
 ## `sanity@6.3.0`
 
